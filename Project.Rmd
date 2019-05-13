@@ -1,0 +1,152 @@
+---
+title: "NBA-Players-Statistic"
+author: "Disperzanti"
+date: "May 12, 2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+1. Ako je centar viši, da li to znači da je bolji skakač (da će imati više skokva od nekoga tko je niži a igraju istu poziciju)?
+```{r, echo=FALSE}
+library(dplyr)
+players = read.csv("nba-players-stats/player_data.csv")
+players  %>% select(name, position, height, weight) -> players
+
+#only centers
+centers = players[grep("C", players$position),]
+ 
+# convert pounds to kg
+centers$weight = centers$weight*0.45359237
+
+# conver feet-inch to cm
+new.heights = array(1:length(centers$height))
+for (i in 1:length(centers$height)) {
+  splitted = strsplit(as.character(centers$height[i]), "-")
+  feet = as.double(splitted[[1]][1])
+  inch = as.double(splitted[[1]][2])
+  new.heights[i] = feet*30.48 + inch*2.54
+}
+centers$height = new.heights
+
+# Load seasons stats
+read.csv("nba-players-stats/Seasons_Stats.csv") %>% select(Year,G,Player,Pos,TRB) -> players.bySeasons
+
+# Remove NA
+players.bySeasons = players.bySeasons[complete.cases(players.bySeasons),]
+
+#only centers
+centers = players.bySeasons[grep("C", players.bySeasons$Pos),]
+
+# Calculate Rebound Per Game
+centers %>% group_by(Player)  %>% summarize(RPG = sum(TRB)/sum(G)) -> centers
+
+# Load personal information of players
+read.csv("nba-players-stats/Players.csv") %>% select(Player, height, weight)-> players.info
+
+
+
+dim(players.info)
+dim(centers)
+
+abc <- merge(centers, players.info)
+hist(abc$RPG)
+hist(abc$height)
+plot(abc$height, abc$RPG, type="p")
+summary(abc)
+abc.h.mean = mean(abc$height)
+abc[abc$height >= abc.h.mean,] -> higher.centers
+abc[abc$height < abc.h.mean,] -> lower.centers
+
+summary(higher.centers)
+summary(lower.centers)
+hist(higher.centers$RPG)
+hist(lower.centers$RPG)
+hist(lower.centers$height)
+hist(higher.centers$height)
+```
+
+
+2. Da li se u današnjoj košarci zabija više koševa u prosjeku?
+```{r}
+# Load seasons stats
+read.csv("nba-players-stats/Seasons_Stats.csv") %>% select(Year,PTS,G,Player) -> players.bySeasons
+read.csv("nba-players-stats/Seasons_info.csv") -> seasons.info
+
+# Remove NA
+players.bySeasons = players.bySeasons[complete.cases(players.bySeasons),]
+
+# Group by Year
+players.bySeasons %>% group_by(Year)  %>% summarize(PPS = sum(PTS)) -> players.pps
+
+merge(players.pps, seasons.info) -> seasons.info
+
+plot(seasons.info$Year, seasons.info$PPS/(seasons.info$Games*seasons.info$Teams), type="p")
+
+read.csv("nba-players-stats/Seasons_info_full.csv") -> seasons.info
+seasons.info[seasons.info$Season > 1990,] -> seasons.info
+plot(seasons.info$Season, seasons.info$PTS, type="p")
+
+
+
+
+# Points per game per player
+players.bySeasons %>% group_by(Year)  %>% summarize(PPGPP = sum(PTS)/sum(G), Games = sum(G)) -> players.ppg
+hist(players.ppg$PPGPP)
+plot(players.ppg$Year, players.ppg$Games, type="p")
+
+# sum of points per season
+
+hist(players.pps$PPS)
+
+players.pps.median = median(players.pps$PPS)
+players.pps[players.pps$PPS < players.pps.median,] -> lower.player.pps
+players.pps[players.pps$PPS >= players.pps.median,] -> higher.player.pps
+hist(lower.player.pps$PPS, breaks = seq(from = min(lower.player.pps$PPS) - 0.5, to = max(lower.player.pps$PPS) + 0.5, length = 15))
+hist(higher.player.pps$PPS)
+
+plot(players.pps$Year, players.pps$PPS, type="p")
+summary(players.bySeasons)
+
+plot(players.ppg$Year, players.ppg$PPGPP, type="p")
+```
+
+
+3. Tko je bolji šuter trica, SG ili C?
+```{r}
+# Load seasons stats
+read.csv("nba-players-stats/Seasons_Stats.csv") %>% select(Player,Pos,X3P,X3PA) -> players
+threshold = 0.6
+
+# Remove NA
+players = players[complete.cases(players),]
+
+# divide dataset
+centers = players[grep("C", players$Pos),]
+s.guards = players[grep("SG", players$Pos),]
+
+# convert to 3P%
+centers %>% group_by(Player)  %>% summarize(X3PPG = sum(X3P)/sum(X3PA)) -> centers
+s.guards  %>% group_by(Player)  %>% summarize(X3PPG = sum(X3P)/sum(X3PA)) -> s.guards
+
+# cut
+centers = centers[centers$X3PPG < threshold,]
+s.guards = s.guards[s.guards$X3PPG < threshold,]
+
+summary(centers)
+summary(s.guards)
+hist(centers$X3PPG)
+hist(s.guards$X3PPG)
+```
+
+
+
+4. Da li su igrači bolji u prvoj polovici karijere ili u drugoj?
+```{r}
+read.csv("nba-players-stats/Kobe_Bryant.csv") -> kobe
+plot(kobe$Season, kobe$PTS)
+hist(kobe$PTS)
+```

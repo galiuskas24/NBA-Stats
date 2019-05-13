@@ -1,0 +1,8 @@
+Players.csv
+,Player,height,weight,collage,born,birth_city,birth_state
+-----------------------------------------------------------------
+player_data.csv
+name,year_start,year_end,position,height,weight,birth_date,college
+--------------------------------------------------------------------
+Seasons_Stats.csv
+,Year,Player,Pos,Age,Tm,G,GS,MP,PER,TS%,3PAr,FTr,ORB%,DRB%,TRB%,AST%,STL%,BLK%,TOV%,USG%,blanl,OWS,DWS,WS,WS/48,blank2,OBPM,DBPM,BPM,VORP,FG,FGA,FG%,3P,3PA,3P%,2P,2PA,2P%,eFG%,FT,FTA,FT%,ORB,DRB,TRB,AST,STL,BLK,TOV,PF,PTS
