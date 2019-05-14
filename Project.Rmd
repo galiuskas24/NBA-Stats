@@ -9,29 +9,11 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+## 1. Da li su viši centri nužno i bolji skakači?
+Centar je igrač koji većinu svog vremena provodi pod košem vrebajući skokove. Zbog toga je zanimljivo proučavati da li je visina igrača ključni parametar za skupljanje skokova?
 
-1. Ako je centar viši, da li to znači da je bolji skakač (da će imati više skokva od nekoga tko je niži a igraju istu poziciju)?
 ```{r, echo=FALSE}
 library(dplyr)
-players = read.csv("nba-players-stats/player_data.csv")
-players  %>% select(name, position, height, weight) -> players
-
-#only centers
-centers = players[grep("C", players$position),]
- 
-# convert pounds to kg
-centers$weight = centers$weight*0.45359237
-
-# conver feet-inch to cm
-new.heights = array(1:length(centers$height))
-for (i in 1:length(centers$height)) {
-  splitted = strsplit(as.character(centers$height[i]), "-")
-  feet = as.double(splitted[[1]][1])
-  inch = as.double(splitted[[1]][2])
-  new.heights[i] = feet*30.48 + inch*2.54
-}
-centers$height = new.heights
-
 # Load seasons stats
 read.csv("nba-players-stats/Seasons_Stats.csv") %>% select(Year,G,Player,Pos,TRB) -> players.bySeasons
 
@@ -127,7 +109,12 @@ players = players[complete.cases(players),]
 # divide dataset
 centers = players[grep("C", players$Pos),]
 s.guards = players[grep("SG", players$Pos),]
+centers = centers[centers$X3PA < 20,]
+dim(centers)
+centers = centers[centers$X3PA > 0,]
+dim(centers)
 
+hist(centers$X3PA ,breaks =seq(from = min(centers$X3PA) - 0.5, to = max(centers$X3PA) + 0.5, length = 15))
 # convert to 3P%
 centers %>% group_by(Player)  %>% summarize(X3PPG = sum(X3P)/sum(X3PA)) -> centers
 s.guards  %>% group_by(Player)  %>% summarize(X3PPG = sum(X3P)/sum(X3PA)) -> s.guards
@@ -149,4 +136,42 @@ hist(s.guards$X3PPG)
 read.csv("nba-players-stats/Kobe_Bryant.csv") -> kobe
 plot(kobe$Season, kobe$PTS)
 hist(kobe$PTS)
+```
+
+
+
+5. wingspam-steals
+6. hall-of-fame vs basic-players
+7 USA-World
+## 8. Da li se pozicije Hall-of-Fame igrača ravnomjerno raspodijeljene? 
+chi^2 normal hall-of-fame
+```{r}
+library(dplyr)
+# Load seasons stats
+read.csv("nba-players-stats/Seasons_Stats.csv") %>% select(Player,Pos) -> players
+
+# Remove NA
+players = players[complete.cases(players),]
+
+# only HOF players
+players = players[grep("\\*", players$Player),]
+
+players %>% group_by(Player) %>% select(Player,Pos) -> players
+
+length(players$Player)
+
+players.pg = players[grep("PG", players$Pos),]
+players.sg = players[grep("SG", players$Pos),]
+players.sf = players[grep("SF", players$Pos),]
+players.pf = players[grep("PF", players$Pos),]
+players.c = players[grep("C", players$Pos),]
+
+vector = c(length(players.pg$Player), length(players.sg$Player), length(players.sf$Player), length(players.pf$Player), length(players.c$Player))
+vector
+vec2 = c(1,1,1,1,1)*sum(vector)*0.2
+a = rbind(vector, vec2)
+
+chisq.test(a)
+
+barplot(vector, names.arg=c("PG", "SG", "SF", "PF","C"))
 ```
