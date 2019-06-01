@@ -630,7 +630,7 @@ ggplot(goat.players, aes(x=PTS, colour=Legend)) +
 
 ```
 
-Iz prethodne slike ne možemo jasno vidjeti što se događa u repu distribucije koji je također bitan. Zbog toga u sljedećem prikazu povećavamo prikaz repova. Iz slike vidimo da zapravo Kobe Bryant i Michael Jordan imaju najviše utakmica s najviše zabijenih koševa.
+Iz prethodne slike ne možemo jasno vidjeti što se događa u repu distribucije koji je također bitan. Zbog toga u sljedećem prikazu povećavamo prikaz repova. Iz slike vidimo da zapravo Kobe Bryant i Michael Jordan imaju najviše utakmica s najviše zabijenih koševa. 
 ```{r, echo = F, warning=FALSE}
 kobe_zoom <- bryant[bryant$PTS > 40,]
 jordan_zoom <- jordan[jordan$PTS > 40,]
