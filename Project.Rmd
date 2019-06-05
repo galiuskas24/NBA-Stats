@@ -14,6 +14,7 @@ require(gridExtra)
 require(car)
 require(bootstrap)
 require(ggplot2)
+require(measurements)
 set.seed(42)
 
 players.bySeasons <- read.csv("nba-players-stats/Seasons_Stats.csv")
@@ -266,7 +267,44 @@ Igrači su najbolji u sredini svoje karijere jer na početku nisu previše iskus
 # 
 # 5. TODO [Tin] Da li širina raspona ruku utječe na efikasnost u obrani?
 ```{r}
-#novi dataset
+#read.csv("nba-players-stats/wingspans.csv") -> wingspan
+#wingspan %>% select(Player, WINGSPAN) %>% filter(WINGSPAN != "") -> player.wingspan
+#player.wingspan$FEET = type.convert(player.wingspan$WINGSPAN, as.is = TRUE)
+#player.wingspan$INCH = type.convert(player.wingspan$WINGSPAN, as.is = TRUE)
+#player.wingspan$FEET = sapply(strsplit(player.wingspan$INCH, "\\s+"), '[', 1)
+#player.wingspan$INCH = sapply(strsplit(player.wingspan$INCH, "\\s+"), '[', 2)
+#player.wingspan$FEET = gsub("\'", "", player.wingspan$FEET)
+#player.wingspan$INCH = gsub("\'", "", player.wingspan$INCH)
+#player.wingspan$FEET = type.convert(player.wingspan$FEET, as.is = FALSE)
+#player.wingspan$INCH = type.convert(player.wingspan$INCH, as.is = FALSE)
+#player.wingspan$ftTom = conv_unit(player.wingspan$FEET, from = "ft", to = "m")
+#player.wingspan$inchTom = conv_unit(player.wingspan$INCH, from = "inch", to = "m")
+#player.wingspan$wing = player.wingspan$ftTom + player.wingspan$inchTom
+#player.wingspan %>% select(Player, wing) %>%
+#                    left_join(players.bySeasons) -> proba
+#proba %>% select(Player, wing, DWS) %>%
+#          na.omit() %>%
+#          group_by(Player) %>%
+#          summarise(averageDWS = sum(DWS) / n(), wingspan = sum(wing) / n()) %>%
+#          filter(averageDWS > 0.5) -> novo
+
+#novo
+#qqPlot(standardize(novo$averageDWS), xlab = "Kvantili normalne distribucije", ylab = "")
+#qqPlot(standardize(novo$wingspan), xlab = "Kvantili normalne distribucije", ylab = "")
+#hist(novo$wingspan)
+#hist(player.wingspan$wing)
+
+#plot(novo$averageDWS~novo$wingspan, xlab = "prosječni wingspan", ylab = "prosječni defenzivni bodovi")
+#fit = lm(novo$averageDWS~novo$wingspan)
+#summary(fit)
+
+read.csv("nba-players-stats/player_wingspan_data.csv") -> wingspan
+wingspan$Wingspan.m = conv_unit(wingspan$Wingspan.in, from="inch", to="m")
+qqPlot(standardize(wingspan$Wingspan.m), xlab = "Kvantili normalne distribucije", ylab = "")
+qqPlot(standardize(wingspan$DWS), xlab = "Kvantili normalne distribucije", ylab = "")
+hist(wingspan$Wingspan.m)
+hist(wingspan$DWS)
+
 ```
 
 
