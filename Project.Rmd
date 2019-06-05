@@ -284,7 +284,7 @@ Nakon provedenog testa vidimo da 0 'nije upala' u interval povjerenja pa možemo
 
 
 
-# 5. TODO [Tin] Da li širina raspona ruku utječe na efikasnost u obrani?
+# 5. Utječe li širina raspona ruku na efikasnost u obrani? Kako bismo odgovorili na ovo pitanje moramo odrediti kako ćemo definirati efikasnost obrane. NBA statistika nam ovdje značajno pomaže sa podatkom DWS (Defensive Win Shares). To je složeni podatak koji uzima u obzir nekoliko ostalih podataka kao što su broj pogodaka, posjed lopte te neke timske podatke te na osnovu njih računa vlastitu vrijednost. Pokušat ćemo linearnom regresijom provjeriti jesu li ova dva podatka (wingspan i DWS) linearno povezani.
 ```{r}
 #read.csv("nba-players-stats/wingspans.csv") -> wingspan
 #wingspan %>% select(Player, WINGSPAN) %>% filter(WINGSPAN != "") -> player.wingspan
@@ -323,8 +323,12 @@ qqPlot(standardize(wingspan$Wingspan.m), xlab = "Kvantili normalne distribucije"
 qqPlot(standardize(wingspan$DWS), xlab = "Kvantili normalne distribucije", ylab = "")
 hist(wingspan$Wingspan.m)
 hist(wingspan$DWS)
+plot(wingspan$DWS~wingspan$Wingspan.m, xlab = "prosječni wingspan", ylab = "prosječni DWS")
+fit = lm(wingspan$DWS~wingspan$Wingspan.m)
+summary(fit)
 
 ```
+Na osnovu dobivenih rezultata zaključujemo da navedeni podatke ne možemo nikako povezati. Kada malo bolje razmislimo, veći raspon ruku omogućuje veću pokrivenost terena oko sebe, međutim, on također i unosi potencijalne negativne učinke kao što su tromost, manju ravnotežu i sl. Zbog toga ova statistika i nije toliko začuđujuća.
 
 
 
