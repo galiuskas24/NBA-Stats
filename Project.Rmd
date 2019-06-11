@@ -197,7 +197,7 @@ Kako vrijednost 0 'nije upala' u 95%-tni interval povjerenja za razliku broja sk
 
 \newpage
 # 2. Evolucija šuta za tri poena
-Čak i netko tko površno prati NBA ligu može uočiti jedan zanimljiv trend a to je da se u današnjoj košarci šuta puno više trica. Teško je naći baš razlog zbog čega se to događa ali očito je da su igrači sve više vještiji u šutiranju trica pa čak i oni koji igraju poziciju centra (inače loši šuteri za 3). Na grafu prikazujemo ZELENOM bojojm broj poena po timu po sezoni, a CRVENO prosječan broj zabijenih trica u toj sezoni.
+Čak i netko tko površno prati NBA ligu može uočiti jedan zanimljiv trend a to je da se u današnjoj košarci šuta puno više trica. Teško je naći baš razlog zbog čega se to događa ali očito je da su igrači sve više vještiji u šutiranju trica pa čak i oni koji igraju poziciju centra (inače loši šuteri za 3). Na grafu prikazujemo ZELENOM bojom broj poena po timu po sezoni, a CRVENOM prosječan broj zabijenih trica u toj sezoni.
 
 ```{r, echo=FALSE}
 read.csv("nba-players-stats/Seasons_info_full.csv") -> seasons
@@ -212,24 +212,13 @@ seasons %>% filter(Year >= 1979) -> seasons
 plot(seasons$Year, seasons$PTS, type="l", col="red", yaxt='n', ann=FALSE)
 par(new=TRUE)
 seasons$X3P <- seasons$X3P*3
-plot(seasons$Year, seasons$X3P, type="l", col="green")
+plot(seasons$Year, seasons$X3P, type="l", col="green", xlab="Godine", ylab="Broj poena")
 
 ```
 
-Također možemo zapaziti da današnji u prosjeku više zabiju trica neg tadašnji bek šuteri. To je također dokaz evolucije igre i uvježbavanja vještine kao što je šut za tri poena.
-
-...
-...
+Također možemo zapaziti da današnji igrači u prosjeku više zabiju trica nego tadašnji bek šuteri. To je također dokaz evolucije igre i uvježbavanja vještine kao što je šut za tri poena. Nadalje, zanimljivo je uočiti kako je od 1979. godine (odnosno godine kada je uvedena trica) postepeno rastao broj poena po timu po sezoni što može biti dokaz evolucije u tom segmentu igre - igrači postaju sve vještiji u zabijanju trica.
 
 
-
-Ovo ostaljvam da VOCKO nesto pametno smislis
-
-
-
-
-....
-....
 \bigbreak
 ```{r}
 players.bySeasons %>% select(Year, Player, G, Pos, X3P) %>%
@@ -248,12 +237,12 @@ players.bySeasons %>% select(Year, Player, G, Pos, X3P) %>%
                   summarize(X3P = sum(X3P)) -> centers
 
 c.prosjek = sum(centers$X3P) / length(centers$X3P)
-hist(sg$X3P, main = "Razdioba pogođenih trica SG", xlab = "Ukupan broj pogođenih trica po igraču - SG (1979-1984)", ylab = "Frekvencija")
+hist(sg$X3P, main = "Razdioba pogođenih trica SG", xlab = "Ukupan broj pogođenih trica po igraču - SG (1979-1984)", ylab = "Frekvencija", col = graph.col)
 summary(sg$X3P)
 ```
 \bigbreak
 ```{r}
-hist(centers$X3P, main = "Razdioba pogođenih trica C", xlab = "Ukupan broj pogođenih trica po igraču - C (2012-2017)", ylab = "Frekvencija")
+hist(centers$X3P, main = "Razdioba pogođenih trica C", xlab = "Ukupan broj pogođenih trica po igraču - C (2012-2017)", ylab = "Frekvencija", col = graph.col)
 
 summary(centers$X3P)
 ```
@@ -377,66 +366,34 @@ Nakon provedenog testa vidimo da 0 'nije upala' u interval povjerenja pa možemo
 # 4. Utječe li širina raspona ruku na efikasnost u obrani? 
 Kako bismo odgovorili na ovo pitanje moramo odrediti kako ćemo definirati efikasnost obrane. NBA statistika nam ovdje značajno pomaže sa podatkom DWS (Defensive Win Shares). To je složeni podatak koji uzima u obzir nekoliko ostalih podataka kao što su broj pogodaka, posjed lopte te neke timske podatke te na osnovu njih računa vlastitu vrijednost. Pokušat ćemo linearnom regresijom provjeriti jesu li ova dva podatka (wingspan i DWS) linearno povezani.
 ```{r}
-#read.csv("nba-players-stats/wingspans.csv") -> wingspan
-#wingspan %>% select(Player, WINGSPAN) %>% filter(WINGSPAN != "") -> player.wingspan
-#player.wingspan$FEET = type.convert(player.wingspan$WINGSPAN, as.is = TRUE)
-#player.wingspan$INCH = type.convert(player.wingspan$WINGSPAN, as.is = TRUE)
-#player.wingspan$FEET = sapply(strsplit(player.wingspan$INCH, "\\s+"), '[', 1)
-#player.wingspan$INCH = sapply(strsplit(player.wingspan$INCH, "\\s+"), '[', 2)
-#player.wingspan$FEET = gsub("\'", "", player.wingspan$FEET)
-#player.wingspan$INCH = gsub("\'", "", player.wingspan$INCH)
-#player.wingspan$FEET = type.convert(player.wingspan$FEET, as.is = FALSE)
-#player.wingspan$INCH = type.convert(player.wingspan$INCH, as.is = FALSE)
-#player.wingspan$ftTom = conv_unit(player.wingspan$FEET, from = "ft", to = "m")
-#player.wingspan$inchTom = conv_unit(player.wingspan$INCH, from = "inch", to = "m")
-#player.wingspan$wing = player.wingspan$ftTom + player.wingspan$inchTom
-#player.wingspan %>% select(Player, wing) %>%
-#                    left_join(players.bySeasons) -> proba
-#proba %>% select(Player, wing, DWS) %>%
-#          na.omit() %>%
-#          group_by(Player) %>%
-#          summarise(averageDWS = sum(DWS) / n(), wingspan = sum(wing) / n()) %>%
-#          filter(averageDWS > 0.5) -> novo
-
-#novo
-#qqPlot(standardize(novo$averageDWS), xlab = "Kvantili normalne distribucije", ylab = "")
-#qqPlot(standardize(novo$wingspan), xlab = "Kvantili normalne distribucije", ylab = "")
-#hist(novo$wingspan)
-#hist(player.wingspan$wing)
-
-#plot(novo$averageDWS~novo$wingspan, xlab = "prosječni wingspan", ylab = "prosječni defenzivni bodovi")
-#fit = lm(novo$averageDWS~novo$wingspan)
-#summary(fit)
-
 read.csv("nba-players-stats/player_wingspan_data.csv") -> wingspan
 wingspan$Wingspan.m = conv_unit(wingspan$Wingspan.in, from="inch", to="m")
 ```
 
 ```{r}
-nan = qqPlot(standardize(wingspan$Wingspan.m), xlab = "Kvantili normalne distribucije", ylab = "",main = "Q-Q plot - Raspon ruku")
+nan = qqPlot(standardize(wingspan$Wingspan.m), xlab = "Kvantili normalne distribucije", ylab = "",main = "Q-Q plot - Raspon ruku", col = graph.col)
 ```
 \bigbreak
 ```{r}
-nan = qqPlot(standardize(wingspan$DWS), xlab = "Kvantili normalne distribucije", ylab = "",main = "Q-Q plot - DWS")
+nan = qqPlot(standardize(wingspan$DWS), xlab = "Kvantili normalne distribucije", ylab = "",main = "Q-Q plot - DWS", col = graph.col)
 ```
 \bigbreak
 ```{r}
-hist(wingspan$Wingspan.m)
+hist(wingspan$Wingspan.m, xlab = "Raspon ruku", ylab = "Frekvencija", main = "Histogram raspona ruku", col = graph.col)
 ```
 
 ```{r}
-hist(wingspan$DWS)
+hist(wingspan$DWS, xlab = "DWS", ylab = "Frekvencija", main = "Histogram DWS", col = graph.col)
 ```
 
 \bigbreak
 ```{r}
-plot(wingspan$DWS~wingspan$Wingspan.m, xlab = "prosječni wingspan", ylab = "prosječni DWS")
+plot(wingspan$DWS~wingspan$Wingspan.m, xlab = "prosječni wingspan", ylab = "prosječni DWS", col = graph.col)
 ```
 \bigbreak
 ```{r}
 fit = lm(wingspan$DWS~wingspan$Wingspan.m)
 summary(fit)
-
 ```
 Na osnovu dobivenih rezultata zaključujemo da navedene podatke ne možemo nikako povezati. Kada malo bolje razmislimo, veći raspon ruku omogućuje veću pokrivenost terena oko sebe, međutim, on također i unosi potencijalne negativne učinke kao što su tromost, manju ravnotežu i sl. Zbog toga ova statistika i nije toliko začuđujuća.
 
