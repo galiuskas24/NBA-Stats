@@ -3,12 +3,16 @@ title: "Projekt iz kolegija: Statistička analiza podataka"
 subtitle: "Statistika NBA igrača"
 author: "Disperzanti - Vlado Galić, Tin Komerički, Marino Voćanec"
 date: "12/05/2019"
-output: pdf_document
+header-includes:
+   - \usepackage{float}
+output:
+    pdf_document
+fontsize: 12pt
 ---
 
-# Setup (ovo treba pobrisati, ali sada je zgodno kliknuti desno i skočiti na setup u slučaju oslobađanja memorije)
 ```{r setup, echo=FALSE, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+#pdf.options(encoding = "UTF-8")
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE,fig.width=6, fig.height=4, fig.align='center')
 require(dplyr)
 require(gridExtra)
 require(car)
@@ -16,6 +20,8 @@ require(bootstrap)
 require(ggplot2)
 require(measurements)
 set.seed(42)
+Sys.setlocale("LC_ALL", 'hr_HR.UTF-8')
+Sys.setenv(LANG = "hr_HR.UTF-8")
 
 players.bySeasons <- read.csv("nba-players-stats/Seasons_Stats.csv")
 players.bySeasons.info <- read.csv("nba-players-stats/Players.csv")
@@ -118,7 +124,7 @@ U sklopu projekta iz kolegija "Statistička analiza podataka" naš zadatak je os
 Projekt je koncipiran po cjelinama na takav način da svaka pojedina cjelina zapravo predstavlja jedno zanimljivo pitanje ili hipotezu koju onda dokazujemo. Testovi i regresije koje provodimo su popraćene brojnim vizualizacijama podataka kako bi čitatelju pojednostavili proučavanje dokumenta i dodatno približili ono što se testom ili regresijom zapravo i pokazuje.
 
 
-
+\newpage
 # 1. Jesu li su viši centri nužno i bolji skakači?
 Centar je igrač koji većinu svog vremena provodi pod košem vrebajući skokove. Zbog toga je zanimljivo proučavati je li visina igrača bitan parametar za skupljanje skokova? Prirodno bi bilo očekivati da će visina igrača pozitivno utjecati na količinu skokova. No, je li to baš uvijek tako? Ljubitelji košarke bi mogli tvrditi nešto što se možda na prvi pogled ne čini tako intuitivnim.
 ```{r, echo=FALSE}
@@ -134,15 +140,29 @@ players.bySeasons.info %>% select(Player, height, weight) -> players.info
 merge(centers, players.info) -> centers
 ```
 
-Najprije ćemo vizualizirati podatke kako bismo vidjeli postoji li bilo kakva povezanost izemđu visine i broja skokova.
-```{r}
+Najprije ćemo vizualizirati podatke kako bismo vidjeli postoji li bilo kakva povezanost izemđu visine i broja skokova.    
+\bigbreak
+```{r, echo=FALSE}
 hist(centers$height, main = "Razdioba visina centara", xlab = "Visina centara", ylab = "Frekvencija", col = graph.col)
+```
+\bigbreak
+```{r}
 boxplot(centers$height, main = "Visina centara", col = graph.col)
+```
+\bigbreak
+```{r}
 hist(centers$RPG, main = "Razdioba broja skokova centara", xlab = "Broj skokova centara", ylab = "Frekvencija", col = graph.col)
+```
+\bigbreak
+```{r}
 boxplot(centers$RPG, main = "Broj skokova centara", col = graph.col)
+```
+\bigbreak
+```{r}
 plot(centers$height, centers$RPG, main = "Visina i broj skokova centara", xlab = "Visina centara", ylab = "Broj skokova centara", col = graph.col)
 ```
 
+\bigbreak
 Sljedeće što ćemo napraviti jest razdijeliti centre u 2 skupine: više i niže centre. Niži centri su svi oni koji imaju visinu manju od srednje vrijednosti umanjene za 5% ranga visina. Na isti način se određuju i viši centri, samo što se kod viših centara izračunati postotak nadodaje na srednju vrijednost.
 ```{r}
 # Define percent of a rank for left and right cut (mean -+ cut.percent * rank).
@@ -163,6 +183,7 @@ higher.mean = mean(higher.centers$RPG)
 ```
 
 Nakon što smo centre podijelili na niže i više primijenti ćemo Bootstrap tehniku kako bismo utvrdili da li NIŽI igrači na poziciji centra imaju višeskokova od VIŠIH centara. Ovo možda na prvi pogled djeluje čudo, ali pogledajmo što će reći rezultati postupka.
+\bigbreak
 ```{r}
 message("Srednja vrijednost broja skokova nizih centara: ", round(lower.mean, digits = 5))
 message("Srednja vrijednost broja skokova visih centara: ", round(higher.mean, digits = 5))
@@ -174,10 +195,9 @@ print.bs.interval(interval)
 Kako vrijednost 0 'nije upala' u 95%-tni interval povjerenja za razliku broja skokova između nižih i viših centara, možemo tvrditi na razini značajnosti od 5% kako niži centri imaju više skokova od viših. No, valja biti oprezan! Ovaj rezultat jest statistički značajan, ali je značajnost u domeni košarke upitna. Ipak, radi se o razlici između broja skokova po utakcimi ne većoj od 0.5 što možda u nekom kontekstu i nije toliko bitna razlika.
 
 
-
-# 2. TODO [Vlado] Evolucija trice
--prikaz trice po sezonama
--pokusat dokazat da danas centri sutaju više trica neg što su bek šuter šutali kad se tek uvela trica
+\newpage
+# 2. Evolucija šuta za tri poena
+Čak i netko tko površno prati NBA ligu može uočiti jedan zanimljiv trend a to je da se u današnjoj košarci šuta puno više trica. Teško je naći baš razlog zbog čega se to događa ali očito je da su igrači sve više vještiji u šutiranju trica pa čak i oni koji igraju poziciju centra (inače loši šuteri za 3). Na grafu prikazujemo ZELENOM bojojm broj poena po timu po sezoni, a CRVENO prosječan broj zabijenih trica u toj sezoni.
 
 ```{r, echo=FALSE}
 read.csv("nba-players-stats/Seasons_info_full.csv") -> seasons
@@ -186,13 +206,60 @@ read.csv("nba-players-stats/Seasons_info.csv") -> seasons.teams.games
 ```
 
 Broj koševa po NBA sezoni:
+\bigbreak
 ```{r}
-plot(seasons$Year, seasons$PTS)
+seasons %>% filter(Year >= 1979) -> seasons
+plot(seasons$Year, seasons$PTS, type="l", col="red", yaxt='n', ann=FALSE)
+par(new=TRUE)
+seasons$X3P <- seasons$X3P*3
+plot(seasons$Year, seasons$X3P, type="l", col="green")
 
 ```
 
+Također možemo zapaziti da današnji u prosjeku više zabiju trica neg tadašnji bek šuteri. To je također dokaz evolucije igre i uvježbavanja vještine kao što je šut za tri poena.
+
+...
+...
 
 
+
+Ovo ostaljvam da VOCKO nesto pametno smislis
+
+
+
+
+....
+....
+\bigbreak
+```{r}
+players.bySeasons %>% select(Year, Player, G, Pos, X3P) %>%
+                  na.omit %>%
+                  filter(grepl("SG", Pos)) %>%
+                  filter(Year < 1984 & X3P > 0) %>%
+                  group_by(Player) %>%
+                  summarize(X3P = sum(X3P)) -> sg
+sg.prosjek = sum(sg$X3P) / length(sg$X3P)
+
+players.bySeasons %>% select(Year, Player, G, Pos, X3P) %>%
+                  na.omit %>%
+                  filter(grepl("C", Pos)) %>%
+                  filter(Year > 2012 & X3P > 0) %>%
+                  group_by(Player) %>%
+                  summarize(X3P = sum(X3P)) -> centers
+
+c.prosjek = sum(centers$X3P) / length(centers$X3P)
+hist(sg$X3P, main = "Razdioba pogođenih trica SG", xlab = "Ukupan broj pogođenih trica po igraču - SG (1979-1984)", ylab = "Frekvencija")
+summary(sg$X3P)
+```
+\bigbreak
+```{r}
+hist(centers$X3P, main = "Razdioba pogođenih trica C", xlab = "Ukupan broj pogođenih trica po igraču - C (2012-2017)", ylab = "Frekvencija")
+
+summary(centers$X3P)
+```
+
+
+\newpage
 # 3. Tko je bolji šuter za tri i dva poena: 'Center' ili 'Shooting Guard'? 
 Općenito zanima nas koja je od navedenih pozicija bolji šuter. No, osim toga zanimljivo bi bilo vidjeti je li ta pozicija nužno bolja i za dva i za tri poena. Možda je jedna pozicija uspješnija od druge samo u pogledu trica, ali je zato ova druga bolja za pogotke koji vrijede 2 poena. Pogledajmo najprije kako izgledaju podatci i kojim tehnikama možemo pribjeći.
 ```{r}
@@ -218,31 +285,61 @@ players.bySeasons %>% select(Player, Pos, X3P, X3PA, X2P, X2PA) %>%
 centers  = group.by(players[ grep("C", players$Pos),])
 s.guards = group.by(players[grep("SG", players$Pos),])
 ```
-
 $Q-Q$ plot i histogram za postotak pogođenih 2 point šuta za 'Center' i 'Shooting Guard':
-```{r}
+\bigbreak
+```{r, echo=FALSE}
 # Plot histogram and Q-Q plot in order to check for data normality. If data is not
 # normally distributed we cannot use parametric tests such as t-test.
 hist(centers$X2PPG, xlab = "Postotak pogođenih 2 poena", ylab = "Frekvencija", main = "Centri", col = graph.col)
-boxplot(centers$X2PPG, main = "Centri - 2 poena", col = graph.col)
-qqPlot(standardize(centers$X2PPG), xlab = "Kvantili normalne distribucije", ylab = "", main = "Q-Q plot - centri", col = graph.col)
-hist(s.guards$X2PPG, xlab = "Postotak pogođenih 2 poena", ylab = "Frekvencija", main = "Shooting guards", col = graph.col)
-boxplot(s.guards$X2PPG, main= "Shooting guards - 2 poena", col = graph.col)
-qqPlot(standardize(s.guards$X2PPG), xlab = "Kvantili normalne distribucije", ylab = "", main = "Q-Q plot - shooting guards")
 ```
-
-$Q-Q$ plot i histogram za postotak pogođenih 3 point šuta za 'Center' i 'Shooting Guard':
+\bigbreak
+```{r}
+boxplot(centers$X2PPG, main = "Centri - 2P%", col = graph.col)
+```
+\bigbreak
+```{r}
+nan = qqPlot(standardize(centers$X2PPG), xlab = "Kvantili normalne distribucije", ylab = "", main = "Q-Q plot - centri 2P%", col = graph.col)
+```
+\bigbreak
+```{r}
+hist(s.guards$X2PPG, xlab = "Postotak pogođenih 2 poena", ylab = "Frekvencija", main = "Shooting guards", col = graph.col)
+```
+\bigbreak
+```{r}
+boxplot(s.guards$X2PPG, main= "Shooting guards - 2P%", col = graph.col)
+```
+\bigbreak
+```{r}
+nan = qqPlot(standardize(s.guards$X2PPG), xlab = "Kvantili normalne distribucije", ylab = "", main = "Q-Q plot - shooting guards 2P%")
+```
+\newpage
 ```{r}
 # Plot histogram and Q-Q plot in order to check for data normality. If data is not
 # normally distributed we cannot use parametric tests such as t-test.
 hist(centers$X3PPG, xlab = "Postotak pogođenih trica", ylab = "Frekvencija", main = "Centri", col = graph.col)
-boxplot(centers$X3PPG, main = "Centri - trice", col = graph.col)
-qqPlot(standardize(centers$X3PPG), xlab = "Kvantili normalne distribucije", ylab = "", main = "Q-Q plot - centri", col = graph.col)
+```
+\bigbreak
+```{r}
+boxplot(centers$X3PPG, main = "Centri - 3P%", col = graph.col)
+```
+\bigbreak
+```{r}
+nan = qqPlot(standardize(centers$X3PPG), xlab = "Kvantili normalne distribucije", ylab = "", main = "Q-Q plot - centri 3P%", col = graph.col)
+```
+\bigbreak
+```{r}
 hist(s.guards$X3PPG, xlab = "Postotak pogođenih trica", ylab = "Frekvencija", main = "Shooting guards", col = graph.col)
-boxplot(s.guards$X3PPG, main= "Shooting guards - trice", col = graph.col)
-qqPlot(standardize(s.guards$X3PPG), xlab = "Kvantili normalne distribucije", ylab = "", main = "Q-Q plot - shooting guards")
+```
+\bigbreak
+```{r}
+boxplot(s.guards$X3PPG, main= "Shooting guards - 3P%", col = graph.col)
+```
+\bigbreak
+```{r}
+nan = qqPlot(standardize(s.guards$X3PPG), xlab = "Kvantili normalne distribucije", ylab = "", main = "Q-Q plot - shooting guards 3P%")
 ```
 
+\newpage
 Iz prikazanih grafova možemo zaključiti da parametarski $t$-test možemo koristiti samo za postotak realizacije 2 point šuta. Stoga, pogledajmo najprije uz pomoć $f$-testa možemo li pretpostaviti jednakost varijanci za postotke realizacije 2 point šuta pozicija 'Center' i 'Shooting Guard'. Na koncu, provedimo sam $t$-test.
 ```{r}
 # First we test for the equality of variances, then we perform a t-test.
@@ -276,15 +373,9 @@ mean(centers$X3PPG)
 Nakon provedenog testa vidimo da 0 'nije upala' u interval povjerenja pa možemo uz razinu značajnosti od 5% tvrditi kako pozicija 'Shooting guard' zaista ima veći postotak realizacije 3 point šuta u odnosu na poziciju 'Center'.
 
 
-
-# 4. TODO [Vlado] PLAYOFF vs REGULAR
-```{r}
-
-```
-
-
-
-# 5. Utječe li širina raspona ruku na efikasnost u obrani? Kako bismo odgovorili na ovo pitanje moramo odrediti kako ćemo definirati efikasnost obrane. NBA statistika nam ovdje značajno pomaže sa podatkom DWS (Defensive Win Shares). To je složeni podatak koji uzima u obzir nekoliko ostalih podataka kao što su broj pogodaka, posjed lopte te neke timske podatke te na osnovu njih računa vlastitu vrijednost. Pokušat ćemo linearnom regresijom provjeriti jesu li ova dva podatka (wingspan i DWS) linearno povezani.
+\newpage
+# 4. Utječe li širina raspona ruku na efikasnost u obrani? 
+Kako bismo odgovorili na ovo pitanje moramo odrediti kako ćemo definirati efikasnost obrane. NBA statistika nam ovdje značajno pomaže sa podatkom DWS (Defensive Win Shares). To je složeni podatak koji uzima u obzir nekoliko ostalih podataka kao što su broj pogodaka, posjed lopte te neke timske podatke te na osnovu njih računa vlastitu vrijednost. Pokušat ćemo linearnom regresijom provjeriti jesu li ova dva podatka (wingspan i DWS) linearno povezani.
 ```{r}
 #read.csv("nba-players-stats/wingspans.csv") -> wingspan
 #wingspan %>% select(Player, WINGSPAN) %>% filter(WINGSPAN != "") -> player.wingspan
@@ -319,20 +410,39 @@ Nakon provedenog testa vidimo da 0 'nije upala' u interval povjerenja pa možemo
 
 read.csv("nba-players-stats/player_wingspan_data.csv") -> wingspan
 wingspan$Wingspan.m = conv_unit(wingspan$Wingspan.in, from="inch", to="m")
-qqPlot(standardize(wingspan$Wingspan.m), xlab = "Kvantili normalne distribucije", ylab = "")
-qqPlot(standardize(wingspan$DWS), xlab = "Kvantili normalne distribucije", ylab = "")
+```
+
+```{r}
+nan = qqPlot(standardize(wingspan$Wingspan.m), xlab = "Kvantili normalne distribucije", ylab = "",main = "Q-Q plot - Raspon ruku")
+```
+\bigbreak
+```{r}
+nan = qqPlot(standardize(wingspan$DWS), xlab = "Kvantili normalne distribucije", ylab = "",main = "Q-Q plot - DWS")
+```
+\bigbreak
+```{r}
 hist(wingspan$Wingspan.m)
+```
+
+```{r}
 hist(wingspan$DWS)
+```
+
+\bigbreak
+```{r}
 plot(wingspan$DWS~wingspan$Wingspan.m, xlab = "prosječni wingspan", ylab = "prosječni DWS")
+```
+\bigbreak
+```{r}
 fit = lm(wingspan$DWS~wingspan$Wingspan.m)
 summary(fit)
 
 ```
-Na osnovu dobivenih rezultata zaključujemo da navedeni podatke ne možemo nikako povezati. Kada malo bolje razmislimo, veći raspon ruku omogućuje veću pokrivenost terena oko sebe, međutim, on također i unosi potencijalne negativne učinke kao što su tromost, manju ravnotežu i sl. Zbog toga ova statistika i nije toliko začuđujuća.
+Na osnovu dobivenih rezultata zaključujemo da navedene podatke ne možemo nikako povezati. Kada malo bolje razmislimo, veći raspon ruku omogućuje veću pokrivenost terena oko sebe, međutim, on također i unosi potencijalne negativne učinke kao što su tromost, manju ravnotežu i sl. Zbog toga ova statistika i nije toliko začuđujuća.
 
 
-
-# 6. Hall of Fame igrači - najbolji baš u svemu?
+\newpage
+# 5. Hall of Fame igrači - najbolji baš u svemu?
 Jedno od zanimljivh pitanja koje se postavlja jest jesu li igrači koji su dospjeli u Košarkašku Kuću slavnih bolji od ostalih igrača. Konkretno ovdje ćemo se osvrnui na postotak realizacija trica. Na prvi pogled, osoba koja nije previše upućena u svijet košarke bi mogla tvrditi kako su slavni igrači zasigurno bolji. Ovim testom pokušati ćemo pokazati baš suprotno. Razdvojit ćemo igrače koji su u Košarkaškoj Kući od onih koji nisu. Najprije ćemo provesti $f$-test kako bi znali možemo li pretpostaviti jednakost varijanci, zatim crtamo $Q-Q$ plot kojim provjeravamo jesu li zadovoljene pretpostavke o normalnosti populacija te konačno provodimo $t$-test.
 ```{r}
 # Before we start with anything we should define levels of significance.
@@ -360,14 +470,25 @@ var.eq.p.value = var.test(NOR.players$three.p, HOF.players$three.p, alternative 
 ```
 
 Boxplot te $Q-Q$ plot za igrače koji nisu dospjeli u Košarkašku Kuću slavnih i one koji jesu:
+\bigbreak
 ```{r}
 # Next step is to check for normality of the data. Otherwise we cannot perform t-test.
-boxplot(NOR.players$three.p, main = "Postotak realizacije trica - ostali igrači", col = graph.col)
-boxplot(HOF.players$three.p, main = "Postotak realizacije trica - Hall of Fame igrači", col = graph.col)
-qqPlot(standardize(NOR.players$three.p), xlab = "Kvantili normalne distribucije", ylab = "")
-qqPlot(standardize(HOF.players$three.p), xlab = "Kvantili normalne distribucije", ylab = "")
+boxplot(NOR.players$three.p, main = "Postotak realizacije trica - Ne-HOF igrači", col = graph.col)
+```
+\bigbreak
+```{r}
+boxplot(HOF.players$three.p, main = "Postotak realizacije trica - HOF igrači", col = graph.col)
+```
+\newpage
+```{r}
+nan = qqPlot(standardize(NOR.players$three.p), xlab = "Kvantili normalne distribucije", ylab = "", main = "Q-Q plot - Ne-HOF igrači 3P%")
 ```
 
+\bigbreak
+```{r}
+nan = qqPlot(standardize(HOF.players$three.p), xlab = "Kvantili normalne distribucije", ylab = "", main = "Q-Q plot - HOF igrači 3P%")
+```
+\newpage
 Rezultati $t$-testa:
 ```{r}
 # Finally we perform a t-test. Bear in mind that we are actually trying to test
@@ -380,9 +501,9 @@ t.test(x = NOR.players$three.p, y = HOF.players$three.p, alternative = "greater"
 Nakon provedenog $t$-testa možemo zaključiti na razini značajnosti od 5% kako igrači koji su dospjeli u Košarkašku Kuću slavnih imaju manji postotak pogođenih 3 point šuta u odonsu na igrače koji nisu u Košarkaškoj Kući slavnih. 
 
 
-
-# 7. Fakultet prije NBA karijere? Da ili ne? 
-Poznato nam je da mnogi najbolji NBA igrači nisu završili fakultet. Neki od njih su Kobe Brynat, Dwight Howard, Kevin Garnett, LeBron James, Tracy McGrady te mnogi drugi, stoga bi bilo zanimljivo istražiti jesu li općenito ti igrači bolji od onih koji su se školovali na fakultetima. Uglavnom, isplati li se budućim NBA igračima završiti fakultet ili odmah započeti NBA karijeru.
+\newpage
+# 6. Fakultet prije NBA karijere? Da ili ne? 
+Poznato nam je da mnogi najbolji NBA igrači nisu završili fakultet. Neki od njih su Kobe Brynat, Kevin Garnett, LeBron James, Tracy McGrady te mnogi drugi, stoga bi bilo zanimljivo istražiti jesu li općenito ti igrači bolji od onih koji su se školovali na fakultetima. Uglavnom, isplati li se budućim NBA igračima završiti fakultet ili odmah započeti NBA karijeru.Najprije ćemo vizualizirati podatke kako bi dobili ideju što možemo učiniti po pitanje provjere jesu li doista igrači bez završenog fakulteta bolji od onih koji su ga završili.
 ```{r, include=FALSE}
 # First we define a level of significance for Bootstrap testing.
 bs.alpha = 0.05
@@ -408,26 +529,50 @@ setdiff(all.players, college.players) -> non.college.players
 college.players <- processPlayers(college.players)
 non.college.players <- processPlayers(non.college.players)
 ```
-
-Najprije ćemo vizualizirati podatke kako bi dobili ideju što možemo učiniti po pitanje provjere jesu li doista igrači bez završenog fakulteta bolji od onih koji su ga završili. Pritom ćemo zbog zgodnije vizualizacije igrače koji nisu završili fakultet označiti crvenom bojom, a one koji jesu zelenom.
+\bigbreak
 ```{r}
 xlab = c("S fakultetom", "Bez fakulteta")
 colors = c("green4", "red4")
 
 hist(college.players$PTS, col = colors[1], main = "Poeni (igrači s fakultetom)", xlab = "Poeni", ylab = "Frekvencija")
-hist(college.players$TRB, col = colors[1], main = "Skokovi (igrači s fakultetom)", xlab = "Skokovi", ylab = "Frekvencija")
-
-hist(non.college.players$PTS, col = colors[2], main = "Poeni (igrači bez fakulteta)", xlab = "Poeni", ylab = "Frekvencija")
-hist(non.college.players$TRB, col = colors[2], main = "Skokovi (igrači bez fakulteta)", xlab = "Skokovi", ylab = "Frekvencija")
-
-boxplot(college.players$PTS, non.college.players$PTS, names = xlab, ylab = "Poeni po utakmici", col = colors)
-boxplot(college.players$TRB, non.college.players$TRB, names = xlab, ylab = "Skokovi po utakmici", col = colors)
-
-qqPlot(college.players$PTS, col = colors[1], main = "Poeni", xlab = "Kvantili normalne distribucije", ylab = "")
-qqPlot(college.players$TRB, col = colors[1], main = "Skokovi", xlab = "Kvantili normalne distribucije", ylab = "")
-qqPlot(non.college.players$PTS, col = colors[2], main = "Poeni", xlab = "Kvantili normalne distribucije", ylab = "")
-qqPlot(non.college.players$TRB, col = colors[2], main = "Skokovi", xlab = "Kvantili normalne distribucije", ylab = "")
 ```
+\bigbreak
+```{r}
+hist(college.players$TRB, col = colors[1], main = "Skokovi (igrači s fakultetom)", xlab = "Skokovi", ylab = "Frekvencija")
+```
+\bigbreak
+```{r}
+hist(non.college.players$PTS, col = colors[2], main = "Poeni (igrači bez fakulteta)", xlab = "Poeni", ylab = "Frekvencija")
+```
+\bigbreak
+```{r}
+hist(non.college.players$TRB, col = colors[2], main = "Skokovi (igrači bez fakulteta)", xlab = "Skokovi", ylab = "Frekvencija")
+```
+\bigbreak
+```{r}
+boxplot(college.players$PTS, non.college.players$PTS, names = xlab, ylab = "Poeni po utakmici", col = colors)
+```
+\bigbreak
+```{r}
+boxplot(college.players$TRB, non.college.players$TRB, names = xlab, ylab = "Skokovi po utakmici", col = colors)
+```
+\bigbreak
+```{r}
+nan = qqPlot(college.players$PTS, col = colors[1], main = "Poeni", xlab = "Kvantili normalne distribucije", ylab = "")
+```
+\bigbreak
+```{r}
+nan = qqPlot(college.players$TRB, col = colors[1], main = "Skokovi", xlab = "Kvantili normalne distribucije", ylab = "")
+```
+\bigbreak
+```{r}
+nan = qqPlot(non.college.players$PTS, col = colors[2], main = "Poeni", xlab = "Kvantili normalne distribucije", ylab = "")
+```
+\bigbreak
+```{r}
+nan = qqPlot(non.college.players$TRB, col = colors[2], main = "Skokovi", xlab = "Kvantili normalne distribucije", ylab = "")
+```
+\newpage
 Vidimo da su igrači bez završenog fakulteta ipak malo bolji i to i u broju poena i broju skokova po utakmici. Također, vidimo da podatci nisu normalno distribuirani pa ćemo provesti Bootstrap metodu testiranja s intervalom pouzdanosti. Konkretno, testirati ćemo hipotezu da su obje populacije igrača jednako dobre (i u broju poena i u skokovima) nasuprot alternative da su igrači bez završenog fakulteta bolji. Zbog zakrivljenosti distribucija umjesto srednje vrijednosti koristit ćemo medijan jer je on u tom slučaju bolji pokazatelj sredine distribucije.
 
 
@@ -459,8 +604,8 @@ print.bs.interval(bs.interval(
 Uz pomoć Bootstrap metode možemo na razini značajnosti $\alpha = 0.05$ tvrditi kako su igrači bez završenog fakulteta bolji samo u broju skokova po utakmici. Ipak, valja primijetiti kako je razlika izrazito mala i kako možda nije dovoljno značajna da bi donosili nekakve čvrste, kategoričke odluke. Uprkos tome, test ipak ima značaj jer bi imalo smisla tvrditi da su igrači koji su se dodatno obrazovali na fakultetu bolji zbog dodatnog stečenog znanja, a mi smo s testiranjem pokazali ne samo da su jednaki kao oni bez završenog fakulteta nego čak i lošiji.
 
 
-
-# 8. Jesu li pozicije igrača podjednako raspodijeljene u Kući slavnih?
+\newpage
+# 7. Jesu li pozicije igrača podjednako raspodijeljene u Kući slavnih?
 Jesu li se pozicije igrača koji su dospjeli u Košarkašku Kuću slavnih ravnomjerno raspodijeljene? Točnije, zanima nas jesu li određene pozicije popularnije u smislu da igrači koji igraju na tim pozicijama ostvaruju takve rezultate i uspjehe da to u konačnici rezultirati ulaskom u Košarkašku Kuću slavnih. Koristit ćemo $\chi^2$-test odnosno test prilagodbe modela podatcima.
 ```{r}
 # Utility function used for extracting number of players for certain position.
@@ -490,14 +635,19 @@ table = rbind(dist.of.pos, uniform)
 Rezultati $\chi^2$-testa te raspodjela Hall of Fame igrača po pozicijama:
 ```{r}
 chisq.test(table)
-
+```
+\bigbreak
+```{r}
 barplot(dist.of.pos, names.arg = pos.labels, col = pos.colors)
+```
+\bigbreak
+```{r}
 pie(dist.of.pos, main = "Raspodjela Hall of Fame igrača po pozicijama", labels = pos.labels, col = pos.colors)
 ```
 
 
-
-# 9. Vizualizacija fizičkih karakteristika igrača po pozicijama
+\newpage
+# 8. Vizualizacija fizičkih karakteristika igrača po pozicijama
 U prošlom dijelu smo testirali je li raspodjela pozicija igrača koji su dospjeli u Košarkašku kuću slavnih ravnomjerna. Sada ćemo promatrati fizičke karakteristike igrača kod pojedinih pozicija. Preciznije, zanima nas kakva je distribucija visina i težina za pojedine pozicije. To ćemo ilustrirati na 2 dijagrama (jedan za visinu, drugi za težinu) gdje će istovremeno biti 5 pravokutnih dijagrama s izdancima - za svaku poziciju po jedan.
 ```{r}
 # Utility function used for extracting players for certain position.
@@ -525,12 +675,15 @@ pf = by.pos("PF", all.players)
 c  = by.pos("C", all.players)
 
 boxplot(pg$height, sg$height, sf$height, pf$height, c$height, names = pos.labels, ylab = "Visina", col = pos.colors)
+```
+\bigbreak
+```{r}
 boxplot(pg$weight, sg$weight, sf$weight, pf$weight, c$weight, names = pos.labels, ylab = "Težina", col = pos.colors)
 ```
 
 
-
-# 10. Postoji li povezanost između broja realiziranih šuteva koji nose 2 i 3 poena?
+\newpage
+# 9. Postoji li povezanost između broja realiziranih šuteva koji nose 2 i 3 poena?
 Konkretno, zanima nas postoji li čvrsta LINEARNA povezanost u smislu da oni igrači koji imaju više pogodaka za 2 poena nužno imaju i više pogođenih trica. 
 ```{r}
 players <- players.bySeasons %>%
@@ -551,7 +704,8 @@ plot(players$X3sum~players$X2sum,
 )
 ```
 Kao što vidimo podatci su prilično "rasprešni" i možemo reći da ne postoji pretjerana (linearna) povezanost između broja 2 point pogodaka i trica. No, u to se možemo i dodatno uvjeriti pomoću linearne regresije.
-
+Rezultati regresije na sljedećoj stranici:
+\newpage
 ```{r}
 fit = lm(players$X3sum ~ players$X2sum)
 summary(fit)
@@ -559,9 +713,9 @@ summary(fit)
 Linearna korelacija je premala kako bi mogli govoriti o čvrstoj povezanosti između šuta za 2 i 3 poena što nam dodatno potvđuje ono što smo i nasulutili iz grafa.
 
 
-
-# 11. TODO [Vlado i Vocko] Povezanost duljine karijere i broja utakmica igrača.
-Cilj ovog zadatka je napraviti dovoljno dobar model predikcije koji će na osnovu broja utakmica igrača predvidjeti koliko dugo je trajala karijera igrača.
+\newpage
+# 10. Povezanost duljine karijere i broja utakmica igrača.
+Cilj ovog zadatka je konstruirati dovoljno dobar model koji će na osnovu broja utakmica igrača predvidjeti koliko dugo je trajala karijera igrača. Ideja je sljedeća: najprije ćemo podijeliti početni skup igrača na onaj za učenje i ispitavanje (provjere točnosti) modela. Zatim ćemo pristupu konstrukcije modela pristupiti na 2 načina: linearnom regresijom te strojnim učenjem odnosno pomoću umjetnih neuronskih mreža.
 ```{r}
 players.bySeasons %>% select(Player, G) %>%
                       na.omit %>%
@@ -580,16 +734,72 @@ threshold = 0.9*length(all.players$Player)
 all.players.train <- all.players[1:threshold,]
 all.players.test <- setdiff(all.players, all.players.train)
 
-
-plot(all.players.train$Games~all.players.train$duration, ylab = "Broj utakmica igrača", xlab = "Trajanje karijere igrača (god.)")
 fit = lm(all.players.train$duration ~ all.players.train$Games)
-all.players.test$data = predict(fit, asd = all.players.test$Games)
+```
+
+\bigbreak
+```{r}
+plot(all.players.train$duration~ all.players.train$Games, xlab = "Broj utakmica igrača", ylab = "Trajanje karijere igrača (god.)", main="Trajanje karijere u ovisnosti o broju utakmica")
+lines(all.players.train$Games, fitted(fit), col="red")
+```
+
+```{r}
+residual = resid(fit)
+plot(all.players.train$Games, residual, ylab="Reziduali", xlab="Broj utakmica", main="Analiza reziduala")
+```
+\newpage
+Već pri analizi samih grafova možemo zaključiti kako postoji dosta čvrsta veza između broja utakmica i trajanja karijere igrača. Početnu hipotezu potvrđuje i relativno visok Pearsonov koeficijent korelacije (81.13%) što je relativno zadovoljavajuće s obzirom na stvarne podatke.
+
+Rezultati regresije:
+```{r}
 summary(fit)
 ```
 
 
 
-# 12. Usporedba najboljih igrača u povijesti NBA lige (G.O.A.T. debate)
+Nakon provedenih $t$-testova za odječak na osi y - $\beta_0$ te koeficijenta smjera - $\beta_1$ možemo zaključiti kako su oba koeficijenta različita od 0 ($p-vrijednost < 10^{-10}$).
+$\beta_0 = 1.8508$
+$\beta_1 = 0.0119$
+```{r}
+intercept = summary(fit)$coefficients[1,1]
+slope = summary(fit)$coefficients[2,1]
+```
+
+Točnost modela provjeravamo na skupu za ispitivanje. Kao mjeru pogreške uzet ćemo $MSE$ (engl. Mean Square Error) odnosno srednju kvadratnu pogrešku. Ispada da je navedena mjera jednaka 2.73 godine što je 14.4% od ukupnog raspona trajanja karijera igrača u skupu za ispitivanje. 
+```{r}
+all.players.test$Error = (intercept + all.players.test$Games*slope) - all.players.test$duration
+hist(all.players.test$Error, xlab = "Pogreška modela na skupu za testiranje", ylab = "Frekvencija", main = "Histogram pogreške modela na skupu za ispitivanje", col = graph.col)
+```
+\bigbreak
+```{r}
+all.players.test$SQE = all.players.test$Error^2
+MSE = sum(all.players.test$SQE) / length(all.players.test$Error)
+MSE = MSE/(max(all.players.test$duration)-min(all.players.test$duration))
+```
+\bigbreak
+```{r}
+nan = qqPlot(standardize(all.players.test$Error), xlab = "Kvantili normalne distribucije", ylab = "", main = "Q-Q plot - distribucija pogrešaka na skupu za testiranje", col = graph.col)
+```
+\newpage
+Konačno, kako bi pokušali nači optimalnu funkciju preslikavanja između broja utakmica i trajanja karijere, problem smo pokušali riješiti koristeći umjetne neuronske mreže. Konkretno, prilagođavanje težina u neuronskim mrežama izvedeno je genetskim populacijskim algoritmom sa sljedećim parametrima:  
+- veličina populacije: 30  
+- broj elitnih jedinki: 5   
+- vjerojatnost mutacije: 5%   
+- broj iteracija: 10 000  
+
+Što se tiče same arhitekture mreže, sastoji se od 3 skrivena sloja:    
+1. ulazni sloj (1 neuron - broj utakcima)   
+2. potpuno povezan sloj (7 neurona)    
+3. aktivacijska funkcija (ReLU)    
+4. potpuno povezan sloj (5 neurona)    
+5. potpuno povezan sloj (3 neurona)    
+6. izlazni sloj (1 neuron - trajanje karijere u godinama)    
+   
+Zanimljivo je da je neuronska mreža bila nešto bolja u predikciji rezultata, konkretno dobivena je pogreška od 2.5 godine na skupu za ispitivanje.
+
+
+\newpage
+# 11. Usporedba najboljih igrača u povijesti NBA lige (G.O.A.T. debate)
 I tako, došli smo do kraja gdje ćemo se dotaknuti najškakljivije teme u NBA ligi a to je tko je najbolji igrač ikada? Navijači su podijeljeni otprilike ravnoporavno i svaka grupa je naoružana validnim argumentima zašto baš njihov miljenik zaslužuje titulu najboljeg igrača u povijesti NBA lige. U ovom dijelu nećemo dati odgovor na spomenuto pitanje jer bi to bilo relativno amaterski da na par statisčki zaključaka donesemo konačni sud. Umjesto toga prezentirat ćemo podatke i ostaviti čitatelju da sam procijeni tko je najbolji.
 ```{r, echo = F, warning=FALSE}
 read.csv("players/pre/kobe_career_pre.csv")%>% select(PTS, AST, TRB, TOV, STL, FG., X3P., GmSc) %>% na.omit -> bryant
@@ -614,6 +824,7 @@ scoring.titles<-c(2,10,1,4)
 
 ## Prikaz kategorijskih podataka
 Prikaz najbitnijh karakterstika po kategorijama. Ovaj prikaz je površni te dosta grubo predočava situaciju.
+\bigbreak
 ```{r, echo = F, warning=FALSE}
 custom.ggplot(
   list(bryant, jordan, james, durant),
@@ -671,7 +882,7 @@ ggplot(goat.players, aes(x=PTS, colour=Legend)) +
   theme(plot.title = element_text(hjust = 0.5))
 
 ```
-
+\bigbreak
 Iz prethodne slike ne možemo jasno vidjeti što se događa u repu distribucije koji je također bitan. Zbog toga u sljedećem prikazu povećavamo prikaz repova. Iz slike vidimo da zapravo Kobe Bryant i Michael Jordan imaju najviše utakmica s najviše zabijenih koševa. 
 ```{r, echo = F, warning=FALSE}
 kobe_zoom <- bryant[bryant$PTS > 40,]
@@ -680,6 +891,9 @@ james_zoom <- james[james$PTS > 40,]
 durant_zoom <- durant[durant$PTS > 40,]
 goat.players = rbind(kobe_zoom, jordan_zoom, james_zoom, durant_zoom)
 
+```
+\bigbreak
+```{r, echo = F, warning=FALSE}
 ggplot(goat.players, aes(x=PTS, colour=Legend)) +
   geom_density(aes(y = ..count..))+
   ylab("Frekvencija") + 
@@ -688,14 +902,18 @@ ggplot(goat.players, aes(x=PTS, colour=Legend)) +
   theme(plot.title = element_text(hjust = 0.5))
 ```
 
+\bigbreak
 No isto tako bitan je postotak pogođenih šuteva za dva i tri poena.
+\bigbreak
 ```{r, echo = F, warning=FALSE}
 boxplot(bryant$FG., jordan$FG., james$FG., durant$FG.,
         names = c("Bryant", "Jordan", "James", "Durant"),
         ylab = "Postotak šuta za sve utakmice (FG%)",
         col = pos.colors)
 
-
+```
+\bigbreak
+```{r}
 boxplot(bryant$X3P., jordan$X3P., james$X3P., durant$X3P.,
         names = c("Bryant", "Jordan", "James", "Durant"),
         ylab = "Postotak šuta za sve utakmice (3P%)",
